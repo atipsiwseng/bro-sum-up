@@ -1,0 +1,44 @@
+import type { Metadata, Viewport } from "next"
+import { IBM_Plex_Sans_Thai } from "next/font/google"
+import "./globals.css"
+
+import { getCurrentUser } from "@/lib/auth"
+import { AuthProvider } from "@/components/auth-provider"
+import { StoreProvider } from "@/components/store-provider"
+import { getStores } from "@/app/actions/store-actions"
+
+const plexThai = IBM_Plex_Sans_Thai({
+  variable: "--font-thai",
+  subsets: ["thai", "latin"],
+  weight: ["300", "400", "500", "600", "700"],
+})
+
+export const metadata: Metadata = {
+  title: "Bro Sum Up - ระบบจัดการต้นทุนและภาษี SME",
+  description:
+    "แพลตฟอร์มสำหรับเจ้าของธุรกิจ SME ไทย ในการติดตามต้นทุน วิเคราะห์กำไร และคำนวณภาษีเงินได้นิติบุคคลโดยประมาณ",
+}
+
+export const viewport: Viewport = {
+  themeColor: "#10B981",
+}
+
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const user = await getCurrentUser()
+  const storesResult = user ? await getStores() : null
+  const initialStores = storesResult?.ok ? storesResult.data : []
+
+  return (
+    <html lang="th" className={`${plexThai.variable} bg-background`}>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <AuthProvider user={user}>
+          <StoreProvider initialStores={initialStores}>{children}</StoreProvider>
+        </AuthProvider>
+      </body>
+    </html>
+  )
+}
