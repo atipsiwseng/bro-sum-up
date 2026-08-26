@@ -6,7 +6,6 @@ import {
   ChevronDown,
   LogOut,
   Bell,
-  Menu as MenuIcon,
   Settings,
   Store as StoreIcon,
 } from "lucide-react"
@@ -25,30 +24,15 @@ import { StoreManageModal } from "@/components/store-manage-modal"
 import { PeriodSelectorMenu } from "@/components/period-selector"
 import { logoutAction } from "@/app/actions/auth-actions"
 
-export function TopBar({
-  title,
-  onToggleSidebar,
-}: {
-  title: string
-  onToggleSidebar: () => void
-}) {
+export function TopBar({ title }: { title: string }) {
   const { user } = useAuth()
   const { stores, activeStoreId, activeStore, setActiveStoreId } = useStore()
   const [manageOpen, setManageOpen] = React.useState(false)
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "?"
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-background/85 px-4 py-3 backdrop-blur md:px-6">
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={onToggleSidebar}
-          aria-label="เปิดเมนู"
-        >
-          <MenuIcon className="h-5 w-5" />
-        </Button>
+    <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-background/85 px-3 py-2.5 backdrop-blur sm:gap-3 sm:px-4 sm:py-3 md:px-6">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg p-0.5 lg:hidden">
           <Image
             src="/logo.png"
@@ -58,31 +42,31 @@ export function TopBar({
             className="h-full w-full object-contain"
           />
         </div>
-        <div>
-          <h1 className="text-lg font-semibold tracking-tight md:text-xl">
+        <div className="min-w-0">
+          <h1 className="truncate text-base font-semibold tracking-tight sm:text-lg md:text-xl">
             {title}
           </h1>
-          <p className="hidden text-xs text-muted-foreground sm:block">
+          <p className="hidden truncate text-xs text-muted-foreground sm:block">
             ยินดีต้อนรับกลับมา, {user?.email}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-3">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 md:gap-3">
         {/* Store selector */}
         {stores.length > 0 ? (
           <Menu align="end">
             <MenuTrigger>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-1.5 px-2.5 sm:gap-2 sm:px-4">
                 <StoreIcon className="h-4 w-4 text-primary" />
                 <span className="hidden max-w-[9rem] truncate sm:inline">
                   {activeStore?.name ?? "เลือกร้านค้า"}
                 </span>
-                <span className="sm:hidden">ร้านค้า</span>
+                <span className="sm:hidden">ร้าน</span>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </Button>
             </MenuTrigger>
-            <MenuContent align="end" className="min-w-[16rem]">
+            <MenuContent align="end" className="w-[min(16rem,calc(100vw-1.5rem))]">
               <MenuLabel>ร้านค้า / สาขาของฉัน</MenuLabel>
               {stores.map((s) => (
                 <MenuItem
@@ -110,7 +94,7 @@ export function TopBar({
         <Button
           variant="outline"
           size="icon"
-          className="relative"
+          className="relative hidden sm:inline-flex"
           aria-label="การแจ้งเตือน"
         >
           <Bell className="h-4 w-4" />

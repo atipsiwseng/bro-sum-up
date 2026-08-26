@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { X } from "lucide-react"
 import { Sidebar } from "@/components/sidebar"
+import { BottomNav } from "@/components/bottom-nav"
 import { TopBar } from "@/components/topbar"
 import { KpiCards } from "@/components/kpi-cards"
 import { DashboardCharts } from "@/components/dashboard-charts"
@@ -30,18 +30,16 @@ export function AppShell() {
   const { stores } = useStore()
   const isAdmin = user?.role === "admin"
   const [active, setActive] = React.useState("dashboard")
-  const [mobileOpen, setMobileOpen] = React.useState(false)
 
   function handleNavigate(key: string) {
     setActive(key)
-    setMobileOpen(false)
   }
 
   const activeSection = active === "admin" && !isAdmin ? "dashboard" : active
 
   return (
     <PeriodProvider>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-dvh bg-background">
         {stores.length === 0 ? <StoreOnboardingModal /> : null}
 
         {/* Desktop sidebar */}
@@ -51,32 +49,14 @@ export function AppShell() {
           </div>
         </div>
 
-        {/* Mobile sidebar */}
-        {mobileOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <div
-              className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
-              onClick={() => setMobileOpen(false)}
-              aria-hidden
-            />
-            <div className="absolute inset-y-0 left-0 w-72 animate-in slide-in-from-left">
-              <Sidebar active={activeSection} onNavigate={handleNavigate} isAdmin={isAdmin} />
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="absolute right-3 top-4 flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
-                aria-label="ปิดเมนู"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Mobile bottom navigation — replaces the sidebar below `lg` */}
+        <BottomNav active={activeSection} onNavigate={handleNavigate} isAdmin={isAdmin} />
 
         {/* Main */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar title={titles[activeSection]} onToggleSidebar={() => setMobileOpen(true)} />
+          <TopBar title={titles[activeSection]} />
 
-          <main className="flex-1 space-y-4 p-4 md:space-y-6 md:p-6">
+          <main className="flex-1 space-y-4 p-4 pb-24 md:space-y-6 md:p-6 lg:pb-6">
             {activeSection === "dashboard" ? (
               <DashboardDataProvider>
                 <KpiCards />

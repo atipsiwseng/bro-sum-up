@@ -10,37 +10,44 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-type NavItem = {
+export type NavItem = {
   key: string
   label: string
   sub: string
+  shortLabel: string
   icon: LucideIcon
   adminOnly?: boolean
 }
 
-const navItems: NavItem[] = [
+/** Shared primary navigation model — consumed by the desktop `Sidebar` and
+ * the mobile `BottomNav` so both surfaces always stay in sync. */
+export const navItems: NavItem[] = [
   {
     key: "dashboard",
     label: "แดชบอร์ดภาพรวม",
     sub: "ภาพรวมธุรกิจ",
+    shortLabel: "หน้าหลัก",
     icon: LayoutDashboard,
   },
   {
     key: "costs",
     label: "จัดการต้นทุน / ร้านค้า",
     sub: "บันทึกและติดตาม",
+    shortLabel: "ต้นทุน",
     icon: Store,
   },
   {
     key: "tax",
     label: "สรุปกำไร & คำนวณภาษี",
     sub: "ภาษีนิติบุคคล",
+    shortLabel: "ภาษี",
     icon: Calculator,
   },
   {
     key: "admin",
     label: "จัดการหลังบ้าน",
     sub: "Admin Panel",
+    shortLabel: "แอดมิน",
     icon: ShieldCheck,
     adminOnly: true,
   },

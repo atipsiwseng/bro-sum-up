@@ -173,7 +173,7 @@ export function SupplierFormModal({
                 type="button"
                 onClick={() => setPaymentStatus("paid")}
                 className={cn(
-                  "flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors sm:flex-none",
+                  "flex min-h-[2.75rem] flex-1 items-center justify-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:flex-none",
                   paymentStatus === "paid"
                     ? "border-emerald-200 bg-emerald-100 text-emerald-700"
                     : "border-border text-muted-foreground hover:bg-secondary"
@@ -186,7 +186,7 @@ export function SupplierFormModal({
                 type="button"
                 onClick={() => setPaymentStatus("unpaid")}
                 className={cn(
-                  "flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors sm:flex-none",
+                  "flex min-h-[2.75rem] flex-1 items-center justify-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:flex-none",
                   paymentStatus === "unpaid"
                     ? "border-amber-200 bg-amber-100 text-amber-700"
                     : "border-border text-muted-foreground hover:bg-secondary"
@@ -263,7 +263,7 @@ export function SupplierFormModal({
                     type="button"
                     onClick={() => removeRow(it.id)}
                     disabled={items.length === 1}
-                    className="flex h-9 w-9 items-center justify-center justify-self-end rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+                    className="flex h-11 w-11 items-center justify-center justify-self-end rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted-foreground sm:h-9 sm:w-9"
                     aria-label="ลบแถวสินค้า"
                   >
                     <Trash2 className="h-4 w-4" />

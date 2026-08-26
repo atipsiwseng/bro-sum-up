@@ -101,7 +101,7 @@ export function DashboardCharts() {
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
       {/* Bar chart */}
       <Card className="lg:col-span-3">
-        <CardHeader className="flex-row items-center justify-between">
+        <CardHeader className="flex-row items-center justify-between px-4 sm:px-6">
           <div>
             <CardTitle>ยอดขาย · ต้นทุน · กำไรสุทธิ รายเดือน</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -109,13 +109,13 @@ export function DashboardCharts() {
             </p>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-2 sm:px-6">
           {barData.every((d) => d.revenue === 0 && d.cost === 0) ? (
-            <div className="flex h-[300px] items-center justify-center text-center text-sm text-muted-foreground">
+            <div className="flex h-[260px] items-center justify-center text-center text-sm text-muted-foreground sm:h-[300px]">
               ยังไม่มีข้อมูลย้อนหลัง — เริ่มบันทึกต้นทุนและยอดขายเพื่อดูกราฟ
             </div>
           ) : (
-            <ChartContainer config={barConfig} className="h-[300px] w-full">
+            <ChartContainer config={barConfig} className="h-[260px] w-full sm:h-[300px]">
               <BarChart data={barData} margin={{ left: 4, right: 4, top: 8 }}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                 <XAxis
@@ -159,13 +159,13 @@ export function DashboardCharts() {
 
       {/* Donut chart */}
       <Card className="lg:col-span-2">
-        <CardHeader>
+        <CardHeader className="px-4 sm:px-6">
           <CardTitle>สัดส่วนต้นทุนแยกตามร้านค้า</CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">
             Cost by Suppliers · {periodSelectionShortLabel(selection)}
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           {donutData.length === 0 ? (
             <div className="flex h-[240px] items-center justify-center text-center text-sm text-muted-foreground">
               ยังไม่มีร้านค้าที่บันทึกไว้ในช่วงนี้
@@ -278,7 +278,7 @@ function DashboardChartsSkeleton() {
           <Skeleton className="mt-1 h-4 w-40" />
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[300px] w-full rounded-lg" />
+          <Skeleton className="h-[260px] w-full rounded-lg sm:h-[300px]" />
         </CardContent>
       </Card>
       <Card className="lg:col-span-2">

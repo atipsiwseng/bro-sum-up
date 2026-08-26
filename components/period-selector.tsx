@@ -179,7 +179,7 @@ export function PeriodSelectorMenu() {
   return (
     <Menu align="end">
       <MenuTrigger>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-1.5 px-2.5 sm:gap-2 sm:px-4">
           <Calendar className="h-4 w-4 text-primary" />
           <span className="hidden max-w-[11rem] truncate sm:inline">
             {periodSelectionShortLabel(selection)}
@@ -188,7 +188,7 @@ export function PeriodSelectorMenu() {
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </Button>
       </MenuTrigger>
-      <MenuContent align="end" className="w-[19rem] p-0">
+      <MenuContent align="end" className="w-[min(19rem,calc(100vw-1.5rem))] p-0">
         <PeriodDropdownBody
           options={options}
           mode={mode}

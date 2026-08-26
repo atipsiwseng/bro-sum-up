@@ -51,15 +51,20 @@ export function Dialog({
   // fixed-position elements, which would otherwise clip/mis-position it.
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/50 backdrop-blur-sm animate-in fade-in sm:items-center sm:p-4"
       onClick={disableBackdropClose ? undefined : onClose}
     >
+      {/*
+        Mobile: full-width bottom sheet that slides up from the bottom edge,
+        rounded on top only, with safe-area padding for the home indicator.
+        `sm:` and up: reverts to the original centered, fully-rounded modal.
+      */}
       <div
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "relative z-10 my-8 max-h-[calc(100vh-4rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-lg animate-in fade-in zoom-in-95",
+          "relative z-10 w-full max-w-lg max-h-[92dvh] overflow-y-auto rounded-t-2xl border-t border-border bg-card p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-lg animate-in fade-in slide-in-from-bottom duration-300 sm:my-8 sm:max-h-[calc(100dvh-4rem)] sm:rounded-xl sm:border sm:pb-6 sm:slide-in-from-bottom-0 sm:zoom-in-95",
           className
         )}
       >

@@ -237,7 +237,7 @@ export function CostManagement() {
             setEditing(null)
             setFormOpen(true)
           }}
-          className="shrink-0"
+          className="min-h-[2.75rem] w-full shrink-0 sm:min-h-0 sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           เพิ่มร้านค้าใหม่
@@ -321,7 +321,7 @@ export function CostManagement() {
                 >
                   <button
                     onClick={() => toggle(group.id)}
-                    className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:h-8 sm:w-8"
                     aria-label={isOpen ? "ยุบรายการ" : "ขยายรายการ"}
                     aria-expanded={isOpen}
                   >
@@ -396,14 +396,14 @@ export function CostManagement() {
                         setEditing(group)
                         setFormOpen(true)
                       }}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                      className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:h-8 sm:w-8"
                       aria-label="แก้ไขร้านค้า"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => setDeleteTarget(group)}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive sm:h-8 sm:w-8"
                       aria-label="ลบร้านค้า"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -447,7 +447,7 @@ export function CostManagement() {
                       variant="outline"
                       size="sm"
                       onClick={() => setItemTarget(group)}
-                      className="mt-3 border-dashed"
+                      className="mt-3 min-h-[2.75rem] w-full border-dashed sm:min-h-0 sm:w-auto"
                     >
                       <Plus className="h-4 w-4" />
                       เพิ่มรายการสินค้าในร้านนี้

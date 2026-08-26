@@ -78,7 +78,7 @@ export function KpiCards() {
           ยังไม่มีการบันทึกยอดขายของ {periodLabel} — ไปที่ “สรุปกำไร &amp; คำนวณภาษี” เพื่อกรอกยอดขายและบันทึกสรุปงวด
         </p>
       ) : null}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi) => {
           const Icon = kpi.icon
           return (
@@ -107,7 +107,7 @@ export function KpiCards() {
 
 function KpiCardsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <Card key={i} className="p-5">
           <Skeleton className="h-11 w-11 rounded-xl" />

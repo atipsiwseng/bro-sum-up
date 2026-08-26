@@ -21,6 +21,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#10B981",
+  width: "device-width",
+  initialScale: 1,
+  // Lets `env(safe-area-inset-*)` resolve to real values on notched devices
+  // (e.g. iPhone home indicator), used by the bottom nav and bottom sheets.
+  viewportFit: "cover",
 }
 
 export default async function RootLayout({
@@ -34,7 +39,7 @@ export default async function RootLayout({
 
   return (
     <html lang="th" className={`${plexThai.variable} bg-background`}>
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <body className="min-h-dvh bg-background font-sans antialiased">
         {/*
           Keyed by the authenticated user's id so the whole provider tree
           fully remounts with fresh state whenever the signed-in user
