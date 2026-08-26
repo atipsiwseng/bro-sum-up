@@ -35,7 +35,20 @@ export default async function RootLayout({
   return (
     <html lang="th" className={`${plexThai.variable} bg-background`}>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <AuthProvider user={user}>
+        {/*
+          Keyed by the authenticated user's id so the whole provider tree
+          fully remounts with fresh state whenever the signed-in user
+          changes (login, logout, or switching accounts on the same
+          browser). `loginAction`/`logoutAction` redirect via Next's router
+          (a client-side transition, not a hard page reload), and this root
+          layout wraps both the auth pages and the dashboard — without this
+          key, `StoreProvider`'s `useState(initialStores)` would keep
+          whatever store list was current when it first mounted (e.g. the
+          empty list from the `/login` page) instead of picking up the
+          newly-authenticated user's real stores, which is what made the
+          dashboard appear to have 0 stores/data right after logging in.
+        */}
+        <AuthProvider key={user?.id ?? "anon"} user={user}>
           <StoreProvider initialStores={initialStores}>{children}</StoreProvider>
         </AuthProvider>
       </body>
