@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { Loader2 } from "lucide-react"
 import {
   Bar,
   BarChart,
@@ -14,6 +13,7 @@ import {
   Label,
 } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   ChartContainer,
   ChartTooltip,
@@ -22,9 +22,7 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { getMonthlyTrend } from "@/app/actions/financial-actions"
-import { getSuppliers } from "@/app/actions/supplier-actions"
-import { useStore } from "@/components/store-provider"
+import { useDashboardData } from "@/components/dashboard-data-provider"
 import { usePeriod } from "@/components/period-provider"
 import { groupTotal } from "@/lib/types"
 import { periodSelectionShortLabel, periodSelectionToDateRange } from "@/lib/period"
@@ -47,66 +45,40 @@ const donutColors = [
 type DonutSlice = { supplier: string; amount: number; fill: string }
 
 export function DashboardCharts() {
-  const { activeStoreId } = useStore()
   const { selection } = usePeriod()
-  const [loading, setLoading] = React.useState(true)
-  const [barData, setBarData] = React.useState<
-    { month: string; revenue: number; cost: number; profit: number }[]
-  >([])
-  const [donutData, setDonutData] = React.useState<DonutSlice[]>([])
+  const { trend, suppliers, loading } = useDashboardData()
 
-  React.useEffect(() => {
-    if (!activeStoreId) return
-    let active = true
-    async function load(storeId: string) {
-      const [trendResult, suppliersResult] = await Promise.all([
-        getMonthlyTrend(storeId, 6),
-        getSuppliers(storeId),
-      ])
-      if (!active) return
+  const barData = React.useMemo(
+    () =>
+      trend.map((p) => ({
+        month: p.label,
+        revenue: p.revenue,
+        cost: p.cost,
+        profit: p.revenue - p.cost,
+      })),
+    [trend]
+  )
 
-      if (trendResult.ok) {
-        setBarData(
-          trendResult.data.map((p) => ({
-            month: p.label,
-            revenue: p.revenue,
-            cost: p.cost,
-            profit: p.revenue - p.cost,
-          }))
-        )
-      }
-
-      if (suppliersResult.ok) {
-        const { from, to } = periodSelectionToDateRange(selection)
-        const byName = new Map<string, number>()
-        for (const group of suppliersResult.data) {
-          if (group.date < from || group.date > to) continue
-          byName.set(
-            group.supplier,
-            (byName.get(group.supplier) ?? 0) + groupTotal(group)
-          )
-        }
-        const sorted = Array.from(byName.entries()).sort((a, b) => b[1] - a[1])
-        const top = sorted.slice(0, 4)
-        const restTotal = sorted.slice(4).reduce((sum, [, amount]) => sum + amount, 0)
-        const slices: DonutSlice[] = top.map(([supplier, amount], i) => ({
-          supplier,
-          amount,
-          fill: donutColors[i % donutColors.length],
-        }))
-        if (restTotal > 0) {
-          slices.push({ supplier: "อื่นๆ", amount: restTotal, fill: donutColors[4] })
-        }
-        setDonutData(slices)
-      }
-
-      setLoading(false)
+  const donutData = React.useMemo<DonutSlice[]>(() => {
+    const { from, to } = periodSelectionToDateRange(selection)
+    const byName = new Map<string, number>()
+    for (const group of suppliers) {
+      if (group.date < from || group.date > to) continue
+      byName.set(group.supplier, (byName.get(group.supplier) ?? 0) + groupTotal(group))
     }
-    load(activeStoreId)
-    return () => {
-      active = false
+    const sorted = Array.from(byName.entries()).sort((a, b) => b[1] - a[1])
+    const top = sorted.slice(0, 4)
+    const restTotal = sorted.slice(4).reduce((sum, [, amount]) => sum + amount, 0)
+    const slices: DonutSlice[] = top.map(([supplier, amount], i) => ({
+      supplier,
+      amount,
+      fill: donutColors[i % donutColors.length],
+    }))
+    if (restTotal > 0) {
+      slices.push({ supplier: "อื่นๆ", amount: restTotal, fill: donutColors[4] })
     }
-  }, [activeStoreId, selection])
+    return slices
+  }, [suppliers, selection])
 
   const totalCost = React.useMemo(
     () => donutData.reduce((acc, cur) => acc + cur.amount, 0),
@@ -122,11 +94,7 @@ export function DashboardCharts() {
   }, [donutData])
 
   if (loading) {
-    return (
-      <div className="flex h-72 items-center justify-center rounded-xl border border-dashed border-border text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin" />
-      </div>
-    )
+    return <DashboardChartsSkeleton />
   }
 
   return (
@@ -295,6 +263,36 @@ export function DashboardCharts() {
               </ul>
             </>
           )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function DashboardChartsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+      <Card className="lg:col-span-3">
+        <CardHeader>
+          <Skeleton className="h-5 w-56" />
+          <Skeleton className="mt-1 h-4 w-40" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-[300px] w-full rounded-lg" />
+        </CardContent>
+      </Card>
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="mt-1 h-4 w-36" />
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-4">
+          <Skeleton className="aspect-square w-full max-w-[240px] rounded-full" />
+          <div className="w-full space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-4 w-full" />
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

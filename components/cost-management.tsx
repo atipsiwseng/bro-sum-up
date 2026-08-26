@@ -11,12 +11,12 @@ import {
   CalendarDays,
   Package,
   AlertTriangle,
-  Loader2,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogHeader, DialogFooter } from "@/components/ui/dialog"
 import { SupplierFormModal } from "@/components/supplier-form-modal"
 import { PaymentStatusMenu } from "@/components/payment-status-menu"
@@ -286,10 +286,7 @@ export function CostManagement() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">กำลังโหลดข้อมูล...</p>
-          </div>
+          <CostTableSkeleton />
         ) : loadError ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <AlertTriangle className="h-8 w-8 text-destructive/60" />
@@ -516,6 +513,29 @@ export function CostManagement() {
           </Button>
         </DialogFooter>
       </Dialog>
+    </div>
+  )
+}
+
+function CostTableSkeleton() {
+  return (
+    <div>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 border-b border-border px-4 py-3 last:border-0 lg:grid-cols-[2.5rem_8rem_1fr_8rem_8rem_6.5rem]"
+        >
+          <Skeleton className="h-8 w-8 rounded-md" />
+          <Skeleton className="hidden h-4 w-20 lg:block" />
+          <div className="min-w-0 space-y-1.5">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+          <Skeleton className="hidden h-6 w-24 rounded-full lg:block" />
+          <Skeleton className="hidden h-4 w-16 justify-self-end lg:block" />
+          <Skeleton className="h-8 w-16 justify-self-end" />
+        </div>
+      ))}
     </div>
   )
 }

@@ -15,6 +15,7 @@ import { useAuth } from "@/components/auth-provider"
 import { useStore } from "@/components/store-provider"
 import { StoreOnboardingModal } from "@/components/store-onboarding-modal"
 import { PeriodProvider } from "@/components/period-provider"
+import { DashboardDataProvider } from "@/components/dashboard-data-provider"
 import { cn } from "@/lib/utils"
 
 const titles: Record<string, string> = {
@@ -77,12 +78,12 @@ export function AppShell() {
 
           <main className="flex-1 space-y-4 p-4 md:space-y-6 md:p-6">
             {activeSection === "dashboard" ? (
-              <>
+              <DashboardDataProvider>
                 <KpiCards />
                 <DashboardCharts />
                 <QuickActions onNavigate={handleNavigate} />
                 <RecentCosts />
-              </>
+              </DashboardDataProvider>
             ) : activeSection === "costs" ? (
               <CostManagement />
             ) : activeSection === "tax" ? (

@@ -1,11 +1,16 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, unstable_cache, updateTag } from "next/cache"
 
 import { requireSession } from "@/lib/auth"
 import { assertStoreOwnership } from "@/lib/store-guard"
 import { createSupabaseAdminClient } from "@/lib/supabase"
 import type { ActionResult, PaymentStatus, PurchaseItem, SupplierGroup } from "@/lib/types"
+
+/** Cache tag shared with financial-actions.ts — every cost figure is derived from suppliers, so it busts both on any supplier mutation. */
+const suppliersTag = (storeId: string) => `suppliers:${storeId}`
+/** Safety-net freshness bound; `updateTag` on every mutation below is the primary correctness mechanism (immediate, same-request invalidation — see Next.js docs on `updateTag` vs `revalidateTag`). */
+const CACHE_REVALIDATE_SECONDS = 300
 
 export type ItemInput = { name: string; unitPrice: number; quantity: number }
 export type SupplierInput = {
@@ -45,6 +50,35 @@ function toSupplierGroup(row: {
   }
 }
 
+/**
+ * Suppliers + their nested supplier_items in a single query (one round trip
+ * instead of fetching items separately per supplier), cached and tagged per
+ * store so repeat visits (dashboard + cost management both read this) don't
+ * re-hit the database until a supplier actually changes.
+ */
+async function fetchSuppliers(userId: string, storeId: string) {
+  const supabase = createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from("suppliers")
+    .select(
+      "id, supplier_name, purchase_date, note, payment_status, supplier_items(id, item_name, unit_price, quantity)"
+    )
+    .eq("user_id", userId)
+    .eq("store_id", storeId)
+    .order("purchase_date", { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+function getCachedSuppliers(userId: string, storeId: string) {
+  return unstable_cache(
+    () => fetchSuppliers(userId, storeId),
+    ["suppliers-by-store", userId, storeId],
+    { tags: [suppliersTag(storeId)], revalidate: CACHE_REVALIDATE_SECONDS }
+  )()
+}
+
 export async function getSuppliers(
   storeId: string
 ): Promise<ActionResult<SupplierGroup[]>> {
@@ -54,19 +88,14 @@ export async function getSuppliers(
   const ownership = await assertStoreOwnership(storeId, session.session.sub)
   if (!ownership.ok) return { ok: false, error: ownership.error }
 
-  const supabase = createSupabaseAdminClient()
-  const { data, error } = await supabase
-    .from("suppliers")
-    .select(
-      "id, supplier_name, purchase_date, note, payment_status, supplier_items(id, item_name, unit_price, quantity)"
-    )
-    .eq("user_id", session.session.sub)
-    .eq("store_id", storeId)
-    .order("purchase_date", { ascending: false })
-
-  if (error) return { ok: false, error: error.message }
-
-  return { ok: true, data: data.map(toSupplierGroup) }
+  try {
+    const data = await getCachedSuppliers(session.session.sub, storeId)
+    return { ok: true, data: data.map(toSupplierGroup) }
+  } catch (err) {
+    console.error("GET SUPPLIERS ERROR:", err)
+    const message = err instanceof Error ? err.message : String(err)
+    return { ok: false, error: message }
+  }
 }
 
 export async function createSupplier(
@@ -121,6 +150,7 @@ export async function createSupplier(
     return { ok: false, error: itemsError.message }
   }
 
+  updateTag(suppliersTag(storeId))
   revalidatePath("/")
   return {
     ok: true,
@@ -186,6 +216,7 @@ export async function updateSupplier(
 
   if (itemsError) return { ok: false, error: itemsError.message }
 
+  updateTag(suppliersTag(storeId))
   revalidatePath("/")
   return {
     ok: true,
@@ -218,6 +249,7 @@ export async function updateSupplierPaymentStatus(
   }
   if (!data) return { ok: false, error: "ไม่พบร้านค้านี้" }
 
+  updateTag(suppliersTag(storeId))
   revalidatePath("/")
   return {
     ok: true,
@@ -245,6 +277,7 @@ export async function deleteSupplier(
   if (error) return { ok: false, error: error.message }
   if (!data) return { ok: false, error: "ไม่พบร้านค้านี้" }
 
+  updateTag(suppliersTag(storeId))
   revalidatePath("/")
   return { ok: true, data: { id: supplierId } }
 }
@@ -280,6 +313,7 @@ export async function addSupplierItem(
 
   if (error || !data) return { ok: false, error: error?.message ?? "เพิ่มสินค้าไม่สำเร็จ" }
 
+  updateTag(suppliersTag(storeId))
   revalidatePath("/")
   return {
     ok: true,

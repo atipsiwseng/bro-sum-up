@@ -1,20 +1,18 @@
 "use client"
 
-import * as React from "react"
 import {
   Wallet,
   Receipt,
   PiggyBank,
   Landmark,
-  Loader2,
   type LucideIcon,
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { useStore } from "@/components/store-provider"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useDashboardData } from "@/components/dashboard-data-provider"
 import { usePeriod } from "@/components/period-provider"
 import { periodSelectionShortLabel } from "@/lib/period"
 import { cn, formatTHB } from "@/lib/utils"
-import { getDashboardKpis, type DashboardKpis } from "@/app/actions/financial-actions"
 
 type Kpi = {
   key: string
@@ -24,32 +22,20 @@ type Kpi = {
   tone: "primary" | "slate" | "profit" | "tax"
 }
 
+const toneStyles: Record<Kpi["tone"], string> = {
+  primary: "bg-primary/10 text-primary",
+  slate: "bg-slate-200/70 text-slate-700",
+  profit: "bg-emerald-100 text-emerald-700",
+  tax: "bg-amber-100 text-amber-700",
+}
+
 export function KpiCards() {
-  const { activeStoreId } = useStore()
   const { selection } = usePeriod()
-  const [data, setData] = React.useState<DashboardKpis | null>(null)
-  const [loading, setLoading] = React.useState(true)
+  const { kpis: data, loading } = useDashboardData()
   const periodLabel = periodSelectionShortLabel(selection)
 
-  React.useEffect(() => {
-    if (!activeStoreId) return
-    let active = true
-    getDashboardKpis(activeStoreId, selection).then((result) => {
-      if (!active) return
-      if (result.ok) setData(result.data)
-      setLoading(false)
-    })
-    return () => {
-      active = false
-    }
-  }, [activeStoreId, selection])
-
   if (loading || !data) {
-    return (
-      <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-border text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin" />
-      </div>
-    )
+    return <KpiCardsSkeleton />
   }
 
   const { totalRevenue, totalCost, netProfit, estimatedTax, hasSavedSummary } = data
@@ -85,13 +71,6 @@ export function KpiCards() {
     },
   ]
 
-  const toneStyles: Record<Kpi["tone"], string> = {
-    primary: "bg-primary/10 text-primary",
-    slate: "bg-slate-200/70 text-slate-700",
-    profit: "bg-emerald-100 text-emerald-700",
-    tax: "bg-amber-100 text-amber-700",
-  }
-
   return (
     <div className="space-y-2">
       {!hasSavedSummary ? (
@@ -122,6 +101,20 @@ export function KpiCards() {
           )
         })}
       </div>
+    </div>
+  )
+}
+
+function KpiCardsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card key={i} className="p-5">
+          <Skeleton className="h-11 w-11 rounded-xl" />
+          <Skeleton className="mt-4 h-4 w-32" />
+          <Skeleton className="mt-2 h-7 w-28" />
+        </Card>
+      ))}
     </div>
   )
 }

@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Loader2, PackageSearch, AlertCircle } from "lucide-react"
+import { PackageSearch, AlertCircle } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableHeader,
@@ -12,10 +13,9 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table"
-import { getSuppliers, updateSupplierPaymentStatus } from "@/app/actions/supplier-actions"
 import { PaymentStatusMenu } from "@/components/payment-status-menu"
-import { useStore } from "@/components/store-provider"
-import { groupTotal, itemTotal, type PaymentStatus, type SupplierGroup } from "@/lib/types"
+import { useDashboardData } from "@/components/dashboard-data-provider"
+import { groupTotal, itemTotal, type PaymentStatus } from "@/lib/types"
 import { formatTHB } from "@/lib/utils"
 
 type RecentEntry = {
@@ -39,26 +39,13 @@ function formatThaiDate(iso: string) {
 }
 
 export function RecentCosts() {
-  const { activeStoreId } = useStore()
-  // Full supplier list is kept as the single source of truth so both the
-  // recent-entries table AND the "ยอดค้างชำระ" summary badge stay in sync
-  // whenever a status is toggled — no separate/duplicated derived state.
-  const [groups, setGroups] = React.useState<SupplierGroup[] | null>(null)
-
-  React.useEffect(() => {
-    if (!activeStoreId) return
-    let active = true
-    getSuppliers(activeStoreId).then((result) => {
-      if (!active) return
-      setGroups(result.ok ? result.data : [])
-    })
-    return () => {
-      active = false
-    }
-  }, [activeStoreId])
+  // Suppliers here come from the shared dashboard bundle (`DashboardDataProvider`)
+  // fetched once for the whole dashboard tab — no separate fetch in this
+  // component anymore (previously duplicated the same query `DashboardCharts`
+  // was already making).
+  const { suppliers: groups, loading, updatePaymentStatus } = useDashboardData()
 
   const entries = React.useMemo<RecentEntry[]>(() => {
-    if (!groups) return []
     const flat: RecentEntry[] = groups.flatMap((group) =>
       group.items.map((item) => ({
         key: item.id,
@@ -77,26 +64,10 @@ export function RecentCosts() {
   // Computed over ALL suppliers (not just the 6 entries shown above) so this
   // reflects the true outstanding balance, not just recent activity.
   const totalUnpaid = React.useMemo(() => {
-    if (!groups) return 0
     return groups
       .filter((group) => group.paymentStatus === "unpaid")
       .reduce((sum, group) => sum + groupTotal(group), 0)
   }, [groups])
-
-  async function handleStatusChange(supplierId: string, status: PaymentStatus) {
-    if (!activeStoreId || !groups) return
-    const previous = groups
-    setGroups((prev) =>
-      prev
-        ? prev.map((g) => (g.id === supplierId ? { ...g, paymentStatus: status } : g))
-        : prev
-    )
-    const result = await updateSupplierPaymentStatus(activeStoreId, supplierId, status)
-    if (!result.ok) {
-      // Roll back the optimistic update if the write failed.
-      setGroups(previous)
-    }
-  }
 
   return (
     <Card>
@@ -118,10 +89,8 @@ export function RecentCosts() {
         ) : null}
       </CardHeader>
       <CardContent>
-        {groups === null ? (
-          <div className="flex h-32 items-center justify-center text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-          </div>
+        {loading ? (
+          <RecentCostsSkeleton />
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
             <PackageSearch className="h-8 w-8 text-muted-foreground/50" />
@@ -155,7 +124,7 @@ export function RecentCosts() {
                   <TableCell className="text-left">
                     <PaymentStatusMenu
                       status={entry.paymentStatus}
-                      onChange={(status) => handleStatusChange(entry.supplierId, status)}
+                      onChange={(status) => updatePaymentStatus(entry.supplierId, status)}
                     />
                   </TableCell>
                   <TableCell className="font-medium tabular-nums">
@@ -168,5 +137,21 @@ export function RecentCosts() {
         )}
       </CardContent>
     </Card>
+  )
+}
+
+function RecentCostsSkeleton() {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-4">
+          <Skeleton className="h-4 flex-1" />
+          <Skeleton className="h-5 w-16 shrink-0 rounded-full" />
+          <Skeleton className="h-4 w-20 shrink-0" />
+          <Skeleton className="h-6 w-24 shrink-0 rounded-full" />
+          <Skeleton className="h-4 w-16 shrink-0" />
+        </div>
+      ))}
+    </div>
   )
 }

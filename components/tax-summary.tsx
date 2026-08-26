@@ -11,7 +11,6 @@ import {
   Info,
   Landmark,
   Link2,
-  Loader2,
   Receipt,
   Save,
   TrendingDown,
@@ -22,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Menu,
   MenuContent,
@@ -304,12 +304,7 @@ export function TaxSummary() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-2 text-center">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">กำลังโหลดข้อมูลงวด {label}...</p>
-      </div>
-    )
+    return <TaxSummarySkeleton />
   }
 
   return (
@@ -613,6 +608,48 @@ export function TaxSummary() {
             </div>
           </div>
         </Card>
+      </div>
+    </div>
+  )
+}
+
+function TaxSummarySkeleton() {
+  return (
+    <div className="space-y-4 md:space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-64" />
+        <Skeleton className="h-3 w-80" />
+      </div>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,22rem)_1fr] md:gap-6">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="mt-1 h-3 w-56" />
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="space-y-1.5">
+                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-10 w-full rounded-md" />
+              </div>
+            ))}
+            <Skeleton className="h-10 w-full rounded-md" />
+          </CardContent>
+        </Card>
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-48" />
+              <Skeleton className="mt-1 h-3 w-64" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-xl" />
+              ))}
+            </CardContent>
+          </Card>
+          <Skeleton className="h-40 w-full rounded-xl" />
+        </div>
       </div>
     </div>
   )

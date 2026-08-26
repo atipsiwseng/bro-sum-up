@@ -20,25 +20,26 @@ export async function listUsersOverview(): Promise<
 
   const supabase = createSupabaseAdminClient()
 
-  const { data: users, error: usersError } = await supabase
-    .from("users")
-    .select("id, email, role, created_at")
-    .order("created_at", { ascending: false })
+  // These three reads don't depend on each other — fetch them concurrently
+  // instead of waiting on each one sequentially.
+  const [usersRes, suppliersRes, summariesRes] = await Promise.all([
+    supabase
+      .from("users")
+      .select("id, email, role, created_at")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("suppliers")
+      .select("id, user_id, supplier_name, supplier_items(unit_price, quantity)"),
+    supabase.from("financial_summaries").select("user_id, total_revenue"),
+  ])
 
+  const { data: users, error: usersError } = usersRes
   if (usersError) return { ok: false, error: usersError.message }
 
-  const { data: suppliers, error: suppliersError } = await supabase
-    .from("suppliers")
-    .select(
-      "id, user_id, supplier_name, supplier_items(unit_price, quantity)"
-    )
-
+  const { data: suppliers, error: suppliersError } = suppliersRes
   if (suppliersError) return { ok: false, error: suppliersError.message }
 
-  const { data: summaries, error: summariesError } = await supabase
-    .from("financial_summaries")
-    .select("user_id, total_revenue")
-
+  const { data: summaries, error: summariesError } = summariesRes
   if (summariesError) return { ok: false, error: summariesError.message }
 
   const revenueByUser = new Map<string, number>()
@@ -127,46 +128,43 @@ export async function getUserStoreBreakdown(
 
   const supabase = createSupabaseAdminClient()
 
-  const { data: userRow, error: userError } = await supabase
-    .from("users")
-    .select("id, email, role, created_at")
-    .eq("id", userId)
-    .maybeSingle()
+  // All four reads are independent (each only needs `userId`, not each
+  // other's result) — fetch them concurrently instead of four sequential
+  // round trips.
+  const [userRes, storesRes, suppliersRes, summariesRes] = await Promise.all([
+    supabase.from("users").select("id, email, role, created_at").eq("id", userId).maybeSingle(),
+    supabase
+      .from("stores")
+      .select("id, name")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("suppliers")
+      .select("id, store_id, supplier_name, purchase_date, supplier_items(unit_price, quantity)")
+      .eq("user_id", userId),
+    supabase.from("financial_summaries").select("store_id, total_revenue").eq("user_id", userId),
+  ])
 
+  const { data: userRow, error: userError } = userRes
   if (userError) {
     console.error("GET USER STORE BREAKDOWN ERROR (user):", userError)
     return { ok: false, error: userError.message }
   }
   if (!userRow) return { ok: false, error: "ไม่พบผู้ใช้งานนี้" }
 
-  const { data: stores, error: storesError } = await supabase
-    .from("stores")
-    .select("id, name")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: true })
-
+  const { data: stores, error: storesError } = storesRes
   if (storesError) {
     console.error("GET USER STORE BREAKDOWN ERROR (stores):", storesError)
     return { ok: false, error: storesError.message }
   }
 
-  const { data: suppliers, error: suppliersError } = await supabase
-    .from("suppliers")
-    .select(
-      "id, store_id, supplier_name, purchase_date, supplier_items(unit_price, quantity)"
-    )
-    .eq("user_id", userId)
-
+  const { data: suppliers, error: suppliersError } = suppliersRes
   if (suppliersError) {
     console.error("GET USER STORE BREAKDOWN ERROR (suppliers):", suppliersError)
     return { ok: false, error: suppliersError.message }
   }
 
-  const { data: summaries, error: summariesError } = await supabase
-    .from("financial_summaries")
-    .select("store_id, total_revenue")
-    .eq("user_id", userId)
-
+  const { data: summaries, error: summariesError } = summariesRes
   if (summariesError) {
     console.error("GET USER STORE BREAKDOWN ERROR (summaries):", summariesError)
     return { ok: false, error: summariesError.message }
