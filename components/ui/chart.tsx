@@ -99,7 +99,41 @@ ${colorConfig
   )
 }
 
-const ChartTooltip = RechartsPrimitive.Tooltip
+// recharts' own `Tooltip`/`Legend` prop types have shifted significantly
+// across major versions (this template targets an older shape than the
+// installed v3), so these are cast loosely to `any` rather than chasing the
+// exact upstream generic signature — the actual props passed at every call
+// site in this app are still validated by `ChartTooltipContent`/
+// `ChartLegendContent`'s own types below.
+const ChartTooltip = RechartsPrimitive.Tooltip as any // eslint-disable-line @typescript-eslint/no-explicit-any
+
+type ChartTooltipContentProps = React.ComponentProps<"div"> & {
+  active?: boolean
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload?: any[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  label?: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  labelFormatter?: (label: any, payload: any[]) => React.ReactNode
+  formatter?: (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    value: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    name: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    item: any,
+    index: number,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: any
+  ) => React.ReactNode
+  color?: string
+  hideLabel?: boolean
+  hideIndicator?: boolean
+  indicator?: "line" | "dot" | "dashed"
+  nameKey?: string
+  labelKey?: string
+  labelClassName?: string
+}
 
 function ChartTooltipContent({
   active,
@@ -115,18 +149,11 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-  React.ComponentProps<"div"> & {
-    hideLabel?: boolean
-    hideIndicator?: boolean
-    indicator?: "line" | "dot" | "dashed"
-    nameKey?: string
-    labelKey?: string
-  }) {
+}: ChartTooltipContentProps) {
   const { config } = useChart()
 
   const tooltipLabel = React.useMemo(() => {
-    if (hideLabel || !payload?.length) {
+    if (hideLabel || !payload || payload.length === 0) {
       return null
     }
 
@@ -161,7 +188,7 @@ function ChartTooltipContent({
     labelKey,
   ])
 
-  if (!active || !payload?.length) {
+  if (!active || !payload || payload.length === 0) {
     return null
   }
 
@@ -245,7 +272,15 @@ function ChartTooltipContent({
   )
 }
 
-const ChartLegend = RechartsPrimitive.Legend
+const ChartLegend = RechartsPrimitive.Legend as any // eslint-disable-line @typescript-eslint/no-explicit-any
+
+type ChartLegendContentProps = React.ComponentProps<"div"> & {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload?: any[]
+  verticalAlign?: "top" | "bottom"
+  hideIcon?: boolean
+  nameKey?: string
+}
 
 function ChartLegendContent({
   className,
@@ -253,14 +288,10 @@ function ChartLegendContent({
   payload,
   verticalAlign = "bottom",
   nameKey,
-}: React.ComponentProps<"div"> &
-  Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
-    hideIcon?: boolean
-    nameKey?: string
-  }) {
+}: ChartLegendContentProps) {
   const { config } = useChart()
 
-  if (!payload?.length) {
+  if (!payload || payload.length === 0) {
     return null
   }
 
