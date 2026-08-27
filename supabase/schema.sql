@@ -99,6 +99,25 @@ create unique index if not exists financial_summaries_store_id_period_month_key
 create index if not exists financial_summaries_user_id_idx on public.financial_summaries(user_id);
 create index if not exists financial_summaries_store_id_idx on public.financial_summaries(store_id);
 
+-- 6. capital_contributions -------------------------------------------------
+-- Initial capital / partner (investor) contributions per store — tracks how
+-- much each partner put into the business so ownership share (%) can be
+-- derived as amount / total capital for that store.
+create table if not exists public.capital_contributions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  store_id uuid not null references public.stores(id) on delete cascade,
+  partner_name text not null,
+  amount numeric(14, 2) not null default 0,
+  contribution_date date not null,
+  note text not null default '',
+  created_at timestamptz not null default now()
+);
+
+create index if not exists capital_contributions_user_id_idx on public.capital_contributions(user_id);
+create index if not exists capital_contributions_store_id_idx on public.capital_contributions(store_id);
+create index if not exists capital_contributions_contribution_date_idx on public.capital_contributions(contribution_date);
+
 -- Lock every table down: only the service_role key (used exclusively on the
 -- server) can bypass RLS. anon/authenticated Supabase roles get no policies,
 -- i.e. no access at all, since this app never issues Supabase Auth sessions.
@@ -107,3 +126,4 @@ alter table public.stores enable row level security;
 alter table public.suppliers enable row level security;
 alter table public.supplier_items enable row level security;
 alter table public.financial_summaries enable row level security;
+alter table public.capital_contributions enable row level security;

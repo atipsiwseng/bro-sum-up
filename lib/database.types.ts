@@ -157,6 +157,45 @@ export type Database = {
           }
         ]
       }
+      capital_contributions: {
+        Row: {
+          id: string
+          user_id: string
+          store_id: string
+          partner_name: string
+          amount: number
+          contribution_date: string
+          note: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          store_id: string
+          partner_name: string
+          amount?: number
+          contribution_date: string
+          note?: string
+          created_at?: string
+        }
+        Update: Partial<
+          Database["public"]["Tables"]["capital_contributions"]["Insert"]
+        >
+        Relationships: [
+          {
+            foreignKeyName: "capital_contributions_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "capital_contributions_store_id_fkey"
+            columns: ["store_id"]
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

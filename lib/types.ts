@@ -24,6 +24,22 @@ export function groupTotal(group: SupplierGroup) {
   return group.items.reduce((sum, it) => sum + itemTotal(it), 0)
 }
 
+export type CapitalContribution = {
+  id: string
+  partnerName: string
+  amount: number
+  contributionDate: string // ISO yyyy-mm-dd
+  note: string
+}
+
+export function capitalContributionShare(
+  contribution: Pick<CapitalContribution, "amount">,
+  totalCapital: number
+) {
+  if (totalCapital <= 0) return 0
+  return (contribution.amount / totalCapital) * 100
+}
+
 export type AppUser = {
   id: string
   email: string

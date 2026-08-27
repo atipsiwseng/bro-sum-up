@@ -8,6 +8,7 @@ import {
   Pencil,
   Trash2,
   Store,
+  Wallet,
   CalendarDays,
   Package,
   AlertTriangle,
@@ -20,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogHeader, DialogFooter } from "@/components/ui/dialog"
 import { SupplierFormModal } from "@/components/supplier-form-modal"
 import { PaymentStatusMenu } from "@/components/payment-status-menu"
+import { CapitalManagement } from "@/components/capital-management"
 import { useStore } from "@/components/store-provider"
 import { usePeriod } from "@/components/period-provider"
 import {
@@ -58,6 +60,7 @@ function formatThaiDate(iso: string) {
 }
 
 export function CostManagement() {
+  const [tab, setTab] = React.useState<"costs" | "capital">("costs")
   const { activeStoreId } = useStore()
   const { selection } = usePeriod()
   const periodRange = React.useMemo(() => periodSelectionToDateRange(selection), [selection])
@@ -186,6 +189,40 @@ export function CostManagement() {
 
   return (
     <div className="space-y-4 md:space-y-6">
+      {/* Section tabs — capital & partners lives at the top of the cost page */}
+      <div className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-card p-1">
+        <button
+          type="button"
+          onClick={() => setTab("costs")}
+          className={cn(
+            "flex min-h-[2.5rem] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:flex-none sm:px-4",
+            tab === "costs"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+          )}
+        >
+          <Store className="h-4 w-4" />
+          ต้นทุน / ร้านค้า
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("capital")}
+          className={cn(
+            "flex min-h-[2.5rem] flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors sm:flex-none sm:px-4",
+            tab === "capital"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+          )}
+        >
+          <Wallet className="h-4 w-4" />
+          เงินลงทุนเริ่มต้น / บัญชีหุ้นส่วน
+        </button>
+      </div>
+
+      {tab === "capital" ? <CapitalManagement /> : null}
+
+      {tab === "costs" ? (
+        <>
       {/* Header bar */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-end">
@@ -513,6 +550,8 @@ export function CostManagement() {
           </Button>
         </DialogFooter>
       </Dialog>
+        </>
+      ) : null}
     </div>
   )
 }
