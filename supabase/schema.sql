@@ -38,6 +38,10 @@ create table if not exists public.stores (
 create index if not exists stores_user_id_idx on public.stores(user_id);
 
 -- 3. suppliers ------------------------------------------------------------
+-- One row per vendor/shop name (per store), reused across every purchase
+-- from that vendor. `purchase_date` here is auto-maintained by the app as
+-- "date of the most recent item added for this vendor" — a convenience/
+-- legacy field only; the real per-purchase dates live on `supplier_items`.
 create table if not exists public.suppliers (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
@@ -59,6 +63,12 @@ create index if not exists suppliers_store_id_idx on public.suppliers(store_id);
 create index if not exists suppliers_purchase_date_idx on public.suppliers(purchase_date);
 
 -- 4. supplier_items -------------------------------------------------------
+-- Purchase date now lives PER ITEM (each row = one purchase line, its own
+-- date), not per supplier — a supplier/vendor can be reused across many
+-- purchase visits on different dates. `suppliers.purchase_date` is kept as
+-- an auto-maintained "most recent purchase" convenience/legacy field (the
+-- app updates it to the latest item date whenever items are added), but it
+-- is no longer the source of truth for date-range filtering.
 create table if not exists public.supplier_items (
   id uuid primary key default gen_random_uuid(),
   supplier_id uuid not null references public.suppliers(id) on delete cascade,
@@ -66,10 +76,22 @@ create table if not exists public.supplier_items (
   unit_price numeric(12, 2) not null default 0,
   quantity numeric(12, 2) not null default 0,
   total_price numeric(14, 2) generated always as (unit_price * quantity) stored,
+  purchase_date date,
   created_at timestamptz not null default now()
 );
 
+-- Backward-compatible migration if this table already existed pre-item-date:
+-- add the column nullable first, backfill every existing row from its parent
+-- supplier's (single, pre-refactor) purchase_date, then enforce not null.
+alter table public.supplier_items add column if not exists purchase_date date;
+update public.supplier_items si
+set purchase_date = s.purchase_date
+from public.suppliers s
+where si.supplier_id = s.id and si.purchase_date is null;
+alter table public.supplier_items alter column purchase_date set not null;
+
 create index if not exists supplier_items_supplier_id_idx on public.supplier_items(supplier_id);
+create index if not exists supplier_items_purchase_date_idx on public.supplier_items(purchase_date);
 
 -- 5. financial_summaries ---------------------------------------------------
 create table if not exists public.financial_summaries (

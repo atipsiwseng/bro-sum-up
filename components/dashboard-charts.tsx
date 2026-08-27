@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/chart"
 import { useDashboardData } from "@/components/dashboard-data-provider"
 import { usePeriod } from "@/components/period-provider"
-import { groupTotal } from "@/lib/types"
+import { itemTotal } from "@/lib/types"
 import { periodSelectionShortLabel, periodSelectionToDateRange } from "@/lib/period"
 import { formatTHB } from "@/lib/utils"
 
@@ -62,9 +62,13 @@ export function DashboardCharts() {
   const donutData = React.useMemo<DonutSlice[]>(() => {
     const { from, to } = periodSelectionToDateRange(selection)
     const byName = new Map<string, number>()
+    // Purchase date lives per item now, so filter items individually rather
+    // than including/excluding a whole supplier by one shared date.
     for (const group of suppliers) {
-      if (group.date < from || group.date > to) continue
-      byName.set(group.supplier, (byName.get(group.supplier) ?? 0) + groupTotal(group))
+      for (const item of group.items) {
+        if (item.purchaseDate < from || item.purchaseDate > to) continue
+        byName.set(group.supplier, (byName.get(group.supplier) ?? 0) + itemTotal(item))
+      }
     }
     const sorted = Array.from(byName.entries()).sort((a, b) => b[1] - a[1])
     const top = sorted.slice(0, 4)

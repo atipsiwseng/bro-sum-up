@@ -75,14 +75,31 @@ function toFinancialSummaryRow(data: {
  * chart) is derived from this ONE query shape instead of one query per
  * month, so callers should fetch the widest span they need once and bucket
  * the rows in memory (see `getMonthlyTrend` below).
+ *
+ * Purchase date lives on `supplier_items` now (one vendor can span many
+ * purchase dates), so this filters `supplier_items.purchase_date` directly
+ * rather than a single date on the parent `suppliers` row. Resolved via two
+ * simple, certain-to-work flat queries (supplier ids owned by this
+ * store, then items filtered by those ids + date range) rather than a
+ * nested/embedded-resource filter, to keep this easy to reason about.
  */
 async function fetchSupplierCostRows(userId: string, storeId: string, from: string, to: string) {
   const supabase = createSupabaseAdminClient()
-  const { data, error } = await supabase
+
+  const { data: supplierRows, error: supplierError } = await supabase
     .from("suppliers")
-    .select("purchase_date, supplier_items(unit_price, quantity)")
+    .select("id")
     .eq("user_id", userId)
     .eq("store_id", storeId)
+  if (supplierError) throw new Error(supplierError.message)
+
+  const supplierIds = (supplierRows ?? []).map((s) => s.id)
+  if (supplierIds.length === 0) return []
+
+  const { data, error } = await supabase
+    .from("supplier_items")
+    .select("purchase_date, unit_price, quantity")
+    .in("supplier_id", supplierIds)
     .gte("purchase_date", from)
     .lte("purchase_date", to)
 
@@ -98,11 +115,8 @@ function getCachedSupplierCostRows(userId: string, storeId: string, from: string
   )()
 }
 
-function sumCostRows(rows: { supplier_items: { unit_price: number; quantity: number }[] | null }[]) {
-  return rows.reduce((sum, supplier) => {
-    const items = supplier.supplier_items ?? []
-    return sum + items.reduce((s, it) => s + Number(it.unit_price) * Number(it.quantity), 0)
-  }, 0)
+function sumCostRows(rows: { unit_price: number; quantity: number }[]) {
+  return rows.reduce((sum, it) => sum + Number(it.unit_price) * Number(it.quantity), 0)
 }
 
 /** financial_summaries rows for a store across one or more "YYYY-MM" period months, cached and tagged by store. */
@@ -479,8 +493,7 @@ export async function getMonthlyTrend(
     const costByMonth = new Map<string, number>()
     for (const row of costRows) {
       const month = row.purchase_date.slice(0, 7) // "YYYY-MM-DD" -> "YYYY-MM"
-      const items = row.supplier_items ?? []
-      const rowCost = items.reduce((s, it) => s + Number(it.unit_price) * Number(it.quantity), 0)
+      const rowCost = Number(row.unit_price) * Number(row.quantity)
       costByMonth.set(month, (costByMonth.get(month) ?? 0) + rowCost)
     }
 

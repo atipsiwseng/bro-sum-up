@@ -3,13 +3,13 @@ export type PurchaseItem = {
   name: string
   unitPrice: number
   quantity: number
+  purchaseDate: string // ISO yyyy-mm-dd — tracked per item/purchase, not per supplier
 }
 
 export type PaymentStatus = "paid" | "unpaid"
 
 export type SupplierGroup = {
   id: string
-  date: string // ISO yyyy-mm-dd
   supplier: string
   note: string
   paymentStatus: PaymentStatus
@@ -22,6 +22,15 @@ export function itemTotal(item: Pick<PurchaseItem, "unitPrice" | "quantity">) {
 
 export function groupTotal(group: SupplierGroup) {
   return group.items.reduce((sum, it) => sum + itemTotal(it), 0)
+}
+
+/** Most recent purchase date across a supplier's items (empty string if it has none — e.g. after date-range filtering removes all its items). */
+export function groupLatestDate(group: Pick<SupplierGroup, "items">) {
+  if (group.items.length === 0) return ""
+  return group.items.reduce(
+    (latest, it) => (it.purchaseDate > latest ? it.purchaseDate : latest),
+    group.items[0].purchaseDate
+  )
 }
 
 export type CapitalContribution = {

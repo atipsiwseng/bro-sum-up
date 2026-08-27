@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 
 type ItemDraft = {
   id: string
+  purchaseDate: string
   name: string
   unitPrice: string
   quantity: string
@@ -24,45 +25,59 @@ const baht = (n: number) =>
     maximumFractionDigits: 2,
   }).format(n)
 
-function newDraftItem(): ItemDraft {
+function todayIso() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function newDraftItem(purchaseDate: string): ItemDraft {
   return {
     id: `draft-${Math.random().toString(36).slice(2, 9)}`,
+    purchaseDate,
     name: "",
     unitPrice: "",
     quantity: "",
   }
 }
 
+const SUPPLIER_DATALIST_ID = "supplier-name-options"
+
 export function SupplierFormModal({
   open,
   onClose,
   onSubmit,
   initial,
+  existingSuppliers = [],
 }: {
   open: boolean
   onClose: () => void
   onSubmit: (input: SupplierInput) => Promise<{ ok: boolean; error?: string }>
   initial?: SupplierGroup | null
+  /** Known supplier/vendor names for this store — powers the "pick existing or type new" combobox. */
+  existingSuppliers?: string[]
 }) {
   // No effect needed to sync these from `initial`: the parent remounts this
   // component (via a `key`) each time it is opened for a different supplier.
   const [supplier, setSupplier] = React.useState(initial?.supplier ?? "")
-  const [date, setDate] = React.useState(
-    initial?.date ?? new Date().toISOString().slice(0, 10)
-  )
   const [note, setNote] = React.useState(initial?.note ?? "")
   const [paymentStatus, setPaymentStatus] = React.useState<PaymentStatus>(
     initial?.paymentStatus ?? "unpaid"
+  )
+  // Convenience default applied to newly-added rows only — each row's date
+  // remains individually editable, matching the "purchase date per item"
+  // model (a vendor can be bought from on many different dates).
+  const [defaultDate, setDefaultDate] = React.useState(
+    initial?.items[0]?.purchaseDate ?? todayIso()
   )
   const [items, setItems] = React.useState<ItemDraft[]>(() =>
     initial?.items.length
       ? initial.items.map((it) => ({
           id: it.id,
+          purchaseDate: it.purchaseDate,
           name: it.name,
           unitPrice: String(it.unitPrice),
           quantity: String(it.quantity),
         }))
-      : [newDraftItem()]
+      : [newDraftItem(defaultDate)]
   )
   const [error, setError] = React.useState<string | null>(null)
   const [submitting, setSubmitting] = React.useState(false)
@@ -76,7 +91,7 @@ export function SupplierFormModal({
   }
 
   function addRow() {
-    setItems((prev) => [...prev, newDraftItem()])
+    setItems((prev) => [...prev, newDraftItem(defaultDate)])
   }
 
   function removeRow(id: string) {
@@ -90,12 +105,12 @@ export function SupplierFormModal({
       name: it.name.trim(),
       unitPrice: Number(it.unitPrice) || 0,
       quantity: Number(it.quantity) || 0,
+      purchaseDate: it.purchaseDate,
     }))
-    .filter((it) => it.name !== "")
+    .filter((it) => it.name !== "" && it.purchaseDate !== "")
 
   const grandTotal = parsedItems.reduce((s, it) => s + itemTotal(it), 0)
-  const canSubmit =
-    supplier.trim() !== "" && date !== "" && parsedItems.length > 0 && !submitting
+  const canSubmit = supplier.trim() !== "" && parsedItems.length > 0 && !submitting
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -104,7 +119,6 @@ export function SupplierFormModal({
     setError(null)
     const result = await onSubmit({
       supplier: supplier.trim(),
-      date,
       note: note.trim(),
       paymentStatus,
       items: parsedItems,
@@ -121,11 +135,11 @@ export function SupplierFormModal({
     <Dialog open={open} onClose={onClose} disableBackdropClose className="max-w-2xl">
       <form onSubmit={handleSubmit}>
         <DialogHeader
-          title={isEdit ? "แก้ไขร้านค้า" : "เพิ่มร้านค้าใหม่"}
+          title={isEdit ? "แก้ไขร้านค้า" : "เพิ่มร้านค้า / บันทึกต้นทุน"}
           description={
             isEdit
               ? "ปรับปรุงข้อมูลร้านค้าและรายการสินค้าที่ซื้อ"
-              : "บันทึกร้านค้าพร้อมรายการสินค้าที่ซื้อในครั้งเดียว"
+              : "เลือกร้านค้าเดิมหรือพิมพ์ชื่อร้านใหม่ พร้อมบันทึกรายการสินค้าที่ซื้อ"
           }
           onClose={onClose}
         />
@@ -145,16 +159,28 @@ export function SupplierFormModal({
               value={supplier}
               onChange={(e) => setSupplier(e.target.value)}
               placeholder="เช่น แม็คโคร, ตลาดสดไท"
+              list={SUPPLIER_DATALIST_ID}
+              autoComplete="off"
               autoFocus
             />
+            {existingSuppliers.length > 0 ? (
+              <datalist id={SUPPLIER_DATALIST_ID}>
+                {existingSuppliers.map((name) => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
+            ) : null}
+            <p className="text-xs text-muted-foreground">
+              เลือกร้านค้าเดิมจากรายการ หรือพิมพ์ชื่อร้านใหม่ได้ทันที
+            </p>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="date">วันที่ซื้อ</Label>
+            <Label htmlFor="default-date">วันที่ (ค่าเริ่มต้นของรายการใหม่)</Label>
             <Input
-              id="date"
+              id="default-date"
               type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={defaultDate}
+              onChange={(e) => setDefaultDate(e.target.value)}
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -199,7 +225,7 @@ export function SupplierFormModal({
           </div>
         </div>
 
-        {/* Dynamic item repeater */}
+        {/* Dynamic item repeater — each row now carries its own purchase date */}
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between">
             <Label className="text-sm">รายการสินค้า</Label>
@@ -210,7 +236,8 @@ export function SupplierFormModal({
 
           <div className="space-y-2">
             {/* Column labels (desktop) */}
-            <div className="hidden grid-cols-[1fr_7rem_5rem_7rem_2rem] gap-2 px-1 text-xs text-muted-foreground sm:grid">
+            <div className="hidden grid-cols-[7.5rem_1fr_6.5rem_5rem_6.5rem_2rem] gap-2 px-1 text-xs text-muted-foreground sm:grid">
+              <span>วันที่ซื้อ</span>
               <span>ชื่อสินค้า / วัตถุดิบ</span>
               <span className="text-right">ราคา/หน่วย</span>
               <span className="text-right">จำนวน</span>
@@ -224,8 +251,16 @@ export function SupplierFormModal({
               return (
                 <div
                   key={it.id}
-                  className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-secondary/40 p-2 sm:grid-cols-[1fr_7rem_5rem_7rem_2rem] sm:items-center sm:border-transparent sm:bg-transparent sm:p-0"
+                  className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-secondary/40 p-2 sm:grid-cols-[7.5rem_1fr_6.5rem_5rem_6.5rem_2rem] sm:items-center sm:border-transparent sm:bg-transparent sm:p-0"
                 >
+                  <Input
+                    type="date"
+                    className="col-span-2 sm:col-span-1"
+                    value={it.purchaseDate}
+                    onChange={(e) =>
+                      updateItem(it.id, { purchaseDate: e.target.value })
+                    }
+                  />
                   <Input
                     className="col-span-2 sm:col-span-1"
                     value={it.name}

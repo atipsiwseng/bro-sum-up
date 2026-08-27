@@ -34,6 +34,7 @@ import {
   type SupplierInput,
 } from "@/app/actions/supplier-actions"
 import {
+  groupLatestDate,
   groupTotal,
   itemTotal,
   type PaymentStatus,
@@ -103,22 +104,39 @@ export function CostManagement() {
     loadGroups(activeStoreId)
   }, [activeStoreId, loadGroups])
 
-  const filtered = groups.filter((g) => {
-    const q = query.trim().toLowerCase()
-    const matchesQuery =
-      q === "" ||
-      g.supplier.toLowerCase().includes(q) ||
-      g.note.toLowerCase().includes(q) ||
-      g.items.some((it) => it.name.toLowerCase().includes(q))
-    // Base scope always follows the topbar period selector (single month or
-    // range); the date inputs below let the user further narrow within it.
-    const matchesPeriod = g.date >= periodRange.from && g.date <= periodRange.to
-    const matchesFrom = !dateFrom || g.date >= dateFrom
-    const matchesTo = !dateTo || g.date <= dateTo
-    return matchesQuery && matchesPeriod && matchesFrom && matchesTo
-  })
+  // Purchase date lives on each item now (one supplier can span many
+  // purchase dates), so the date range narrows each group's ITEMS first —
+  // the group itself is only kept if at least one item survives — rather
+  // than filtering whole supplier rows by a single date.
+  const filtered = groups
+    .map((g) => {
+      const itemsInRange = g.items.filter((it) => {
+        // Base scope always follows the topbar period selector (single
+        // month or range); the date inputs below let the user further
+        // narrow within it.
+        const matchesPeriod = it.purchaseDate >= periodRange.from && it.purchaseDate <= periodRange.to
+        const matchesFrom = !dateFrom || it.purchaseDate >= dateFrom
+        const matchesTo = !dateTo || it.purchaseDate <= dateTo
+        return matchesPeriod && matchesFrom && matchesTo
+      })
+      return { ...g, items: itemsInRange }
+    })
+    .filter((g) => {
+      if (g.items.length === 0) return false
+      const q = query.trim().toLowerCase()
+      if (q === "") return true
+      return (
+        g.supplier.toLowerCase().includes(q) ||
+        g.note.toLowerCase().includes(q) ||
+        g.items.some((it) => it.name.toLowerCase().includes(q))
+      )
+    })
 
   const grandTotal = filtered.reduce((s, g) => s + groupTotal(g), 0)
+  const existingSupplierNames = React.useMemo(
+    () => Array.from(new Set(groups.map((g) => g.supplier))).sort((a, b) => a.localeCompare(b, "th")),
+    [groups]
+  )
 
   function toggle(id: string) {
     setExpanded((prev) => {
@@ -152,6 +170,7 @@ export function CostManagement() {
       name: item.name,
       unitPrice: item.unitPrice,
       quantity: item.quantity,
+      purchaseDate: item.purchaseDate,
     })
     if (result.ok) {
       setGroups((prev) =>
@@ -315,7 +334,7 @@ export function CostManagement() {
         {/* Column header (desktop) */}
         <div className="hidden grid-cols-[2.5rem_8rem_1fr_8rem_8rem_6.5rem] items-center gap-3 border-b border-border bg-secondary/50 px-4 py-3 text-xs font-medium text-muted-foreground lg:grid">
           <span />
-          <span>วันที่ซื้อ</span>
+          <span>ซื้อล่าสุด</span>
           <span>ชื่อร้านค้า / บันทึกย่อ</span>
           <span>สถานะชำระเงิน</span>
           <span className="text-right">ยอดต้นทุนรวม</span>
@@ -370,9 +389,14 @@ export function CostManagement() {
                     />
                   </button>
 
-                  <div className="hidden items-center gap-2 text-sm text-muted-foreground lg:flex">
-                    <CalendarDays className="h-4 w-4" />
-                    {formatThaiDate(group.date)}
+                  <div className="hidden flex-col lg:flex">
+                    <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CalendarDays className="h-4 w-4" />
+                      {formatThaiDate(groupLatestDate(group))}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {group.items.length} รายการ
+                    </span>
                   </div>
 
                   <div
@@ -391,7 +415,7 @@ export function CostManagement() {
                       {group.supplier}
                     </p>
                     <p className="truncate text-xs text-muted-foreground lg:hidden">
-                      {formatThaiDate(group.date)}
+                      {formatThaiDate(groupLatestDate(group))} · {group.items.length} รายการ
                       {group.note ? ` · ${group.note}` : ""}
                     </p>
                     {group.note ? (
@@ -452,7 +476,8 @@ export function CostManagement() {
                 {isOpen ? (
                   <div className="bg-secondary/20 px-3 pb-4 pt-1 lg:px-14">
                     <div className="overflow-hidden rounded-lg border border-border bg-card">
-                      <div className="hidden grid-cols-[1fr_8rem_6rem_9rem] gap-3 border-b border-border bg-secondary/40 px-4 py-2.5 text-xs font-medium text-muted-foreground sm:grid">
+                      <div className="hidden grid-cols-[7rem_1fr_7rem_5rem_8rem] gap-3 border-b border-border bg-secondary/40 px-4 py-2.5 text-xs font-medium text-muted-foreground sm:grid">
+                        <span>วันที่ซื้อ</span>
                         <span>ชื่อสินค้า / วัตถุดิบ</span>
                         <span className="text-right">ราคาต่อหน่วย</span>
                         <span className="text-right">จำนวน</span>
@@ -461,8 +486,12 @@ export function CostManagement() {
                       {group.items.map((it) => (
                         <div
                           key={it.id}
-                          className="grid grid-cols-2 gap-x-3 gap-y-1 border-b border-border px-4 py-2.5 text-sm last:border-0 sm:grid-cols-[1fr_8rem_6rem_9rem]"
+                          className="grid grid-cols-2 gap-x-3 gap-y-1 border-b border-border px-4 py-2.5 text-sm last:border-0 sm:grid-cols-[7rem_1fr_7rem_5rem_8rem]"
                         >
+                          <span className="col-span-2 flex items-center gap-1.5 text-xs text-muted-foreground sm:col-span-1 sm:text-sm">
+                            <CalendarDays className="h-3.5 w-3.5 shrink-0 sm:hidden" />
+                            {formatThaiDate(it.purchaseDate)}
+                          </span>
                           <span className="col-span-2 font-medium text-foreground sm:col-span-1">
                             {it.name}
                           </span>
@@ -505,6 +534,7 @@ export function CostManagement() {
           onClose={() => setFormOpen(false)}
           onSubmit={handleSubmit}
           initial={editing}
+          existingSuppliers={existingSupplierNames}
         />
       ) : null}
 
@@ -588,13 +618,17 @@ function AddItemModal({
   onClose: () => void
   onAdd: (item: PurchaseItem) => void | Promise<void>
 }) {
+  const [purchaseDate, setPurchaseDate] = React.useState(() => {
+    const latest = group ? groupLatestDate(group) : ""
+    return latest || new Date().toISOString().slice(0, 10)
+  })
   const [name, setName] = React.useState("")
   const [unitPrice, setUnitPrice] = React.useState("")
   const [quantity, setQuantity] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
 
   const lineTotal = (Number(unitPrice) || 0) * (Number(quantity) || 0)
-  const canAdd = name.trim() !== "" && Number(quantity) > 0 && !submitting
+  const canAdd = name.trim() !== "" && Number(quantity) > 0 && purchaseDate !== "" && !submitting
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -605,6 +639,7 @@ function AddItemModal({
       name: name.trim(),
       unitPrice: Number(unitPrice) || 0,
       quantity: Number(quantity) || 0,
+      purchaseDate,
     })
     setSubmitting(false)
   }
@@ -618,6 +653,15 @@ function AddItemModal({
           onClose={onClose}
         />
         <div className="grid gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="item-date">วันที่ซื้อ</Label>
+            <Input
+              id="item-date"
+              type="date"
+              value={purchaseDate}
+              onChange={(e) => setPurchaseDate(e.target.value)}
+            />
+          </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="item-name">ชื่อสินค้า / วัตถุดิบ</Label>
             <Input

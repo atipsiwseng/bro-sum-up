@@ -50,7 +50,7 @@ export function RecentCosts() {
       group.items.map((item) => ({
         key: item.id,
         supplierId: group.id,
-        date: group.date,
+        date: item.purchaseDate,
         supplier: group.supplier,
         itemName: item.name,
         amount: itemTotal(item),

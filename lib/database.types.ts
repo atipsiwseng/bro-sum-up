@@ -90,6 +90,7 @@ export type Database = {
           unit_price: number
           quantity: number
           total_price: number
+          purchase_date: string
           created_at: string
         }
         Insert: {
@@ -98,6 +99,7 @@ export type Database = {
           item_name: string
           unit_price?: number
           quantity?: number
+          purchase_date: string
           created_at?: string
         }
         Update: Partial<Database["public"]["Tables"]["supplier_items"]["Insert"]>
