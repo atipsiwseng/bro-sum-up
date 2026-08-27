@@ -22,6 +22,7 @@ import { useAuth } from "@/components/auth-provider"
 import { useStore } from "@/components/store-provider"
 import { StoreManageModal } from "@/components/store-manage-modal"
 import { PeriodSelectorMenu } from "@/components/period-selector"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { logoutAction } from "@/app/actions/auth-actions"
 
 export function TopBar({ title }: { title: string }) {
@@ -89,6 +90,9 @@ export function TopBar({ title }: { title: string }) {
 
         {/* Period selector (single month or month range) */}
         <PeriodSelectorMenu />
+
+        {/* Theme toggle */}
+        <ThemeToggle />
 
         {/* Notifications */}
         <Button

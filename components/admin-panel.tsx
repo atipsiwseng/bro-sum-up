@@ -211,8 +211,8 @@ function OverviewCard({
 }) {
   const toneStyles: Record<typeof tone, string> = {
     primary: "bg-primary/10 text-primary",
-    profit: "bg-emerald-100 text-emerald-700",
-    tax: "bg-amber-100 text-amber-700",
+    profit: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+    tax: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
   }
   return (
     <Card className="p-5">

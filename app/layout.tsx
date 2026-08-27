@@ -5,6 +5,7 @@ import "./globals.css"
 import { getCurrentUser } from "@/lib/auth"
 import { AuthProvider } from "@/components/auth-provider"
 import { StoreProvider } from "@/components/store-provider"
+import { ThemeProvider } from "@/components/theme-provider"
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 import { getStores } from "@/app/actions/store-actions"
@@ -57,26 +58,32 @@ export default async function RootLayout({
   const initialStores = storesResult?.ok ? storesResult.data : []
 
   return (
-    <html lang="th" className={`${plexThai.variable} bg-background`}>
+    // `suppressHydrationWarning` on <html> is the standard next-themes
+    // requirement: it sets the `.dark` class via a blocking inline script
+    // before React hydrates (to avoid a light-mode flash), which means the
+    // server-rendered class attribute intentionally won't match the client's.
+    <html lang="th" className={`${plexThai.variable} bg-background`} suppressHydrationWarning>
       <body className="min-h-dvh bg-background font-sans antialiased">
-        {/*
-          Keyed by the authenticated user's id so the whole provider tree
-          fully remounts with fresh state whenever the signed-in user
-          changes (login, logout, or switching accounts on the same
-          browser). `loginAction`/`logoutAction` redirect via Next's router
-          (a client-side transition, not a hard page reload), and this root
-          layout wraps both the auth pages and the dashboard — without this
-          key, `StoreProvider`'s `useState(initialStores)` would keep
-          whatever store list was current when it first mounted (e.g. the
-          empty list from the `/login` page) instead of picking up the
-          newly-authenticated user's real stores, which is what made the
-          dashboard appear to have 0 stores/data right after logging in.
-        */}
-        <AuthProvider key={user?.id ?? "anon"} user={user}>
-          <StoreProvider initialStores={initialStores}>{children}</StoreProvider>
-        </AuthProvider>
-        <PwaInstallPrompt />
-        <ServiceWorkerRegistration />
+        <ThemeProvider>
+          {/*
+            Keyed by the authenticated user's id so the whole provider tree
+            fully remounts with fresh state whenever the signed-in user
+            changes (login, logout, or switching accounts on the same
+            browser). `loginAction`/`logoutAction` redirect via Next's router
+            (a client-side transition, not a hard page reload), and this root
+            layout wraps both the auth pages and the dashboard — without this
+            key, `StoreProvider`'s `useState(initialStores)` would keep
+            whatever store list was current when it first mounted (e.g. the
+            empty list from the `/login` page) instead of picking up the
+            newly-authenticated user's real stores, which is what made the
+            dashboard appear to have 0 stores/data right after logging in.
+          */}
+          <AuthProvider key={user?.id ?? "anon"} user={user}>
+            <StoreProvider initialStores={initialStores}>{children}</StoreProvider>
+          </AuthProvider>
+          <PwaInstallPrompt />
+          <ServiceWorkerRegistration />
+        </ThemeProvider>
       </body>
     </html>
   )

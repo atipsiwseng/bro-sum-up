@@ -201,7 +201,7 @@ export function SupplierFormModal({
                 className={cn(
                   "flex min-h-[2.75rem] flex-1 items-center justify-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:flex-none",
                   paymentStatus === "paid"
-                    ? "border-emerald-200 bg-emerald-100 text-emerald-700"
+                    ? "border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-500/15 dark:text-emerald-400"
                     : "border-border text-muted-foreground hover:bg-secondary"
                 )}
               >
@@ -214,7 +214,7 @@ export function SupplierFormModal({
                 className={cn(
                   "flex min-h-[2.75rem] flex-1 items-center justify-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition-colors sm:min-h-0 sm:flex-none",
                   paymentStatus === "unpaid"
-                    ? "border-amber-200 bg-amber-100 text-amber-700"
+                    ? "border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-900/40 dark:bg-amber-500/15 dark:text-amber-400"
                     : "border-border text-muted-foreground hover:bg-secondary"
                 )}
               >

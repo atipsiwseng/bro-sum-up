@@ -372,7 +372,7 @@ export function TaxSummary() {
               <StaticAmountRow
                 label="ค่าใช้จ่ายดำเนินการอื่นๆ"
                 description="รวมจากงวดที่บันทึกไว้ในช่วงนี้"
-                icon={<Receipt className="h-4 w-4 text-slate-500" />}
+                icon={<Receipt className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
                 value={opex}
               />
             ) : (
@@ -383,15 +383,15 @@ export function TaxSummary() {
                 value={opex}
                 onChange={setOpex}
                 prefix={
-                  <Receipt className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  <Receipt className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
                 }
               />
             )}
 
             {isRange ? (
-              <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2.5 text-xs text-sky-900">
+              <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2.5 text-xs text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-300">
                 <p className="font-medium">โหมดช่วงเดือน (มุมมองอ่านอย่างเดียว)</p>
-                <p className="mt-1 text-sky-900/80">
+                <p className="mt-1 text-sky-900/80 dark:text-sky-300/80">
                   ตัวเลขด้านบนเป็นผลรวมจากงวดรายเดือนที่บันทึกไว้แล้ว —
                   สลับไปโหมด &quot;รายเดือน&quot; ที่ตัวเลือกงวดด้านบนเพื่อแก้ไขยอดขาย/ค่าใช้จ่าย
                   และบันทึกสรุปแต่ละเดือน
@@ -404,7 +404,7 @@ export function TaxSummary() {
                   {saving ? "กำลังบันทึก..." : "บันทึกสรุปงวดนี้"}
                 </Button>
                 {saved ? (
-                  <p className="mt-2 flex items-center gap-1.5 text-xs text-emerald-600">
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     บันทึกสรุปงวด {label} แล้ว
                   </p>
@@ -419,7 +419,7 @@ export function TaxSummary() {
             )}
 
             {isRange && missingMonths.length > 0 ? (
-              <div className="flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-xs text-amber-900">
+              <div className="flex items-start gap-2 rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2.5 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>
                   ยังไม่มีการบันทึกยอดขายสำหรับ:{" "}
@@ -462,7 +462,7 @@ export function TaxSummary() {
 
               <div className="rounded-xl border border-border bg-secondary/40 p-4">
                 <div className="mb-3 flex items-start gap-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-sm font-bold text-amber-800">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-sm font-bold text-amber-800 dark:bg-amber-500/15 dark:text-amber-400">
                     3
                   </span>
                   <div>
@@ -495,7 +495,7 @@ export function TaxSummary() {
                       <p
                         className={cn(
                           "text-sm font-semibold tabular-nums",
-                          row.tax > 0 ? "text-amber-700" : "text-muted-foreground"
+                          row.tax > 0 ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"
                         )}
                       >
                         {formatTHB(Math.round(row.tax))}
@@ -503,12 +503,12 @@ export function TaxSummary() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2.5">
-                  <span className="flex items-center gap-2 text-sm font-medium text-amber-900">
+                <div className="mt-3 flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2.5 dark:bg-amber-950/20">
+                  <span className="flex items-center gap-2 text-sm font-medium text-amber-900 dark:text-amber-300">
                     <Landmark className="h-4 w-4" />
                     ภาษีที่ต้องชำระโดยประมาณ
                   </span>
-                  <span className="text-lg font-bold tabular-nums text-amber-800">
+                  <span className="text-lg font-bold tabular-nums text-amber-800 dark:text-amber-400">
                     {formatTHB(totalTax)}
                   </span>
                 </div>
@@ -519,22 +519,22 @@ export function TaxSummary() {
             </CardContent>
           </Card>
 
-          <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-card p-6 shadow-sm">
-            <p className="text-sm font-medium text-emerald-800">
+          <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-card p-6 shadow-sm dark:border-emerald-900/40 dark:from-emerald-950/30">
+            <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
               ขั้นที่ 4 · กำไรสุทธิหลังหักภาษี
             </p>
-            <p className="mt-1 text-xs text-emerald-800/70">
+            <p className="mt-1 text-xs text-emerald-800/70 dark:text-emerald-300/70">
               Net Profit After Tax = กำไรสุทธิก่อนภาษี − ภาษีนิติบุคคล
             </p>
             <p
               className={cn(
                 "mt-3 text-4xl font-bold tracking-tight tabular-nums md:text-5xl",
-                netAfterTax >= 0 ? "text-emerald-600" : "text-rose-600"
+                netAfterTax >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
               )}
             >
               {formatTHB(netAfterTax)}
             </p>
-            <p className="mt-2 flex items-center gap-1.5 text-sm text-emerald-800/80">
+            <p className="mt-2 flex items-center gap-1.5 text-sm text-emerald-800/80 dark:text-emerald-300/80">
               <TrendingDown className="h-4 w-4" />
               หักภาษี {formatTHB(totalTax)} จากกำไรก่อนภาษี{" "}
               {formatTHB(netBeforeTax)}
@@ -563,11 +563,11 @@ export function TaxSummary() {
               <MenuContent align="start" className="min-w-[16rem]">
                 <MenuLabel>เลือกรูปแบบไฟล์</MenuLabel>
                 <MenuItem onSelect={handleExcel}>
-                  <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   Excel (.csv)
                 </MenuItem>
                 <MenuItem onSelect={handlePdf}>
-                  <FileText className="h-4 w-4 text-slate-600" />
+                  <FileText className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                   PDF (พิมพ์ / บันทึกเป็น PDF)
                 </MenuItem>
               </MenuContent>
@@ -575,19 +575,19 @@ export function TaxSummary() {
           </div>
         </Card>
 
-        <Card className="border-sky-200 bg-sky-50/60 p-5">
+        <Card className="border-sky-200 bg-sky-50/60 p-5 dark:border-sky-900/40 dark:bg-sky-950/20">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-400">
               <Info className="h-5 w-5" />
             </span>
             <div>
-              <h2 className="text-base font-semibold text-sky-950">
+              <h2 className="text-base font-semibold text-sky-950 dark:text-sky-200">
                 กล่องคำแนะนำการวางแผนภาษี
               </h2>
-              <p className="mt-0.5 text-xs font-medium text-sky-800">
+              <p className="mt-0.5 text-xs font-medium text-sky-800 dark:text-sky-400">
                 ภ.ง.ด.50 / ภ.ง.ด.51
               </p>
-              <ul className="mt-3 space-y-2 text-sm leading-relaxed text-sky-950/80">
+              <ul className="mt-3 space-y-2 text-sm leading-relaxed text-sky-950/80 dark:text-sky-200/80">
                 <li>
                   <span className="font-medium">ภ.ง.ด.51</span> — แบบประมาณการกำไรสุทธิครึ่งปี
                   ยื่นภายใน 2 เดือนนับแต่วันสุดท้ายของรอบ 6 เดือนแรก (เช่น ปีปฏิทินครบ 30 มิ.ย. → ยื่นภายใน ส.ค.)
@@ -685,7 +685,7 @@ function StepRow({
       <p
         className={cn(
           "text-2xl font-bold tabular-nums",
-          warn ? "text-rose-600" : "text-foreground"
+          warn ? "text-rose-600 dark:text-rose-400" : "text-foreground"
         )}
       >
         {formatTHB(value)}

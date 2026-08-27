@@ -129,7 +129,7 @@ export function StoreManageModal({
                   <button
                     onClick={() => saveEdit(store.id)}
                     disabled={savingId === store.id || !editValue.trim()}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-emerald-600 transition-colors hover:bg-emerald-50 disabled:opacity-40"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-emerald-600 transition-colors hover:bg-emerald-50 disabled:opacity-40 dark:text-emerald-400 dark:hover:bg-emerald-500/15"
                     aria-label="บันทึกชื่อ"
                   >
                     <Check className="h-4 w-4" />

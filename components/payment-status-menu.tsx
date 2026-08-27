@@ -28,8 +28,8 @@ export function PaymentStatusMenu({
           className={cn(
             "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
             status === "paid"
-              ? "border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-              : "border-amber-200 bg-amber-100 text-amber-700 hover:bg-amber-200"
+              ? "border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:border-emerald-900/40 dark:bg-emerald-500/15 dark:text-emerald-400 dark:hover:bg-emerald-500/25"
+              : "border-amber-200 bg-amber-100 text-amber-700 hover:bg-amber-200 dark:border-amber-900/40 dark:bg-amber-500/15 dark:text-amber-400 dark:hover:bg-amber-500/25"
           )}
         >
           {status === "paid" ? (
@@ -43,11 +43,11 @@ export function PaymentStatusMenu({
       </MenuTrigger>
       <MenuContent align="end" className="min-w-[9rem]">
         <MenuItem active={status === "paid"} onSelect={() => onChange("paid")}>
-          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           ชำระแล้ว
         </MenuItem>
         <MenuItem active={status === "unpaid"} onSelect={() => onChange("unpaid")}>
-          <Clock className="h-4 w-4 text-amber-600" />
+          <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           ค้างชำระ
         </MenuItem>
       </MenuContent>

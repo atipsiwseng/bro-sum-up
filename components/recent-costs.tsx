@@ -79,10 +79,10 @@ export function RecentCosts() {
           </p>
         </div>
         {totalUnpaid > 0 ? (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm">
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-            <span className="text-amber-900/80">ยอดค้างชำระ</span>
-            <span className="font-semibold tabular-nums text-amber-700">
+          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm dark:border-amber-900/40 dark:bg-amber-950/20">
+            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <span className="text-amber-900/80 dark:text-amber-300/80">ยอดค้างชำระ</span>
+            <span className="font-semibold tabular-nums text-amber-700 dark:text-amber-400">
               {formatTHB(totalUnpaid)}
             </span>
           </div>
