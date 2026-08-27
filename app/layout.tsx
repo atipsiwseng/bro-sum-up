@@ -21,6 +21,12 @@ export const metadata: Metadata = {
   description:
     "แพลตฟอร์มสำหรับเจ้าของธุรกิจ SME ไทย ในการติดตามต้นทุน วิเคราะห์กำไร และคำนวณภาษีเงินได้นิติบุคคลโดยประมาณ",
   manifest: "/manifest.json",
+  // `app/favicon.ico` is auto-detected by Next regardless of this config, but
+  // `app/icon.svg` is NOT: declaring `icons.icon` here at all makes Next skip
+  // its usual auto-detection of that file (explicit config replaces, rather
+  // than merges with, the file-based convention), so it must be listed
+  // explicitly alongside the PNG/Apple touch-icon fallbacks Next never
+  // auto-detects in the first place.
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
