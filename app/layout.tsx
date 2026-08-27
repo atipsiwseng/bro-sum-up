@@ -5,6 +5,8 @@ import "./globals.css"
 import { getCurrentUser } from "@/lib/auth"
 import { AuthProvider } from "@/components/auth-provider"
 import { StoreProvider } from "@/components/store-provider"
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 import { getStores } from "@/app/actions/store-actions"
 
 const plexThai = IBM_Plex_Sans_Thai({
@@ -17,9 +19,26 @@ export const metadata: Metadata = {
   title: "Bro Sum Up - ระบบจัดการต้นทุนและภาษี SME",
   description:
     "แพลตฟอร์มสำหรับเจ้าของธุรกิจ SME ไทย ในการติดตามต้นทุน วิเคราะห์กำไร และคำนวณภาษีเงินได้นิติบุคคลโดยประมาณ",
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "BroSumUp",
+  },
 }
 
 export const viewport: Viewport = {
+  // Next.js moved `themeColor` out of `Metadata` and into `Viewport` — this
+  // is what actually renders the `<meta name="theme-color">` tag PWAs need
+  // (setting it on `metadata` instead triggers a build-time warning).
   themeColor: "#10B981",
   width: "device-width",
   initialScale: 1,
@@ -56,6 +75,8 @@ export default async function RootLayout({
         <AuthProvider key={user?.id ?? "anon"} user={user}>
           <StoreProvider initialStores={initialStores}>{children}</StoreProvider>
         </AuthProvider>
+        <PwaInstallPrompt />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   )
