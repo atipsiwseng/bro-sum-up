@@ -140,6 +140,20 @@ create index if not exists capital_contributions_user_id_idx on public.capital_c
 create index if not exists capital_contributions_store_id_idx on public.capital_contributions(store_id);
 create index if not exists capital_contributions_contribution_date_idx on public.capital_contributions(contribution_date);
 
+-- 7. shopping_items ---------------------------------------------------------
+-- Lightweight personal "things to buy" checklist per user — independent of
+-- stores/suppliers. Shown as a reminder popup on login/refresh until each
+-- item is checked off (bought, which just deletes the row) or removed.
+create table if not exists public.shopping_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  item_name text not null,
+  quantity numeric(12, 2) not null default 1,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists shopping_items_user_id_idx on public.shopping_items(user_id);
+
 -- Lock every table down: only the service_role key (used exclusively on the
 -- server) can bypass RLS. anon/authenticated Supabase roles get no policies,
 -- i.e. no access at all, since this app never issues Supabase Auth sessions.
@@ -149,3 +163,4 @@ alter table public.suppliers enable row level security;
 alter table public.supplier_items enable row level security;
 alter table public.financial_summaries enable row level security;
 alter table public.capital_contributions enable row level security;
+alter table public.shopping_items enable row level security;

@@ -5,10 +5,12 @@ import "./globals.css"
 import { getCurrentUser } from "@/lib/auth"
 import { AuthProvider } from "@/components/auth-provider"
 import { StoreProvider } from "@/components/store-provider"
+import { ShoppingProvider } from "@/components/shopping-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt"
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration"
 import { getStores } from "@/app/actions/store-actions"
+import { getShoppingItems } from "@/app/actions/shopping-actions"
 
 const plexThai = IBM_Plex_Sans_Thai({
   variable: "--font-thai",
@@ -53,6 +55,8 @@ export default async function RootLayout({
   const user = await getCurrentUser()
   const storesResult = user ? await getStores() : null
   const initialStores = storesResult?.ok ? storesResult.data : []
+  const shoppingResult = user ? await getShoppingItems() : null
+  const initialShoppingItems = shoppingResult?.ok ? shoppingResult.data : []
 
   return (
     // `suppressHydrationWarning` on <html> is the standard next-themes
@@ -76,7 +80,9 @@ export default async function RootLayout({
             dashboard appear to have 0 stores/data right after logging in.
           */}
           <AuthProvider key={user?.id ?? "anon"} user={user}>
-            <StoreProvider initialStores={initialStores}>{children}</StoreProvider>
+            <StoreProvider initialStores={initialStores}>
+              <ShoppingProvider initialItems={initialShoppingItems}>{children}</ShoppingProvider>
+            </StoreProvider>
           </AuthProvider>
           <PwaInstallPrompt />
           <ServiceWorkerRegistration />

@@ -198,6 +198,31 @@ export type Database = {
           }
         ]
       }
+      shopping_items: {
+        Row: {
+          id: string
+          user_id: string
+          item_name: string
+          quantity: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          item_name: string
+          quantity?: number
+          created_at?: string
+        }
+        Update: Partial<Database["public"]["Tables"]["shopping_items"]["Insert"]>
+        Relationships: [
+          {
+            foreignKeyName: "shopping_items_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

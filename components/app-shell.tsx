@@ -14,6 +14,7 @@ import { AdminPanel } from "@/components/admin-panel"
 import { useAuth } from "@/components/auth-provider"
 import { useStore } from "@/components/store-provider"
 import { StoreOnboardingModal } from "@/components/store-onboarding-modal"
+import { ShoppingAlertModal } from "@/components/shopping-alert-modal"
 import { PeriodProvider } from "@/components/period-provider"
 import { DashboardDataProvider } from "@/components/dashboard-data-provider"
 import { cn } from "@/lib/utils"
@@ -41,6 +42,7 @@ export function AppShell() {
     <PeriodProvider>
       <div className="flex min-h-dvh bg-background">
         {stores.length === 0 ? <StoreOnboardingModal /> : null}
+        <ShoppingAlertModal />
 
         {/* Desktop sidebar */}
         <div className="hidden w-72 shrink-0 lg:block">

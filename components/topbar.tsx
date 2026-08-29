@@ -7,6 +7,7 @@ import {
   LogOut,
   Bell,
   Settings,
+  ShoppingCart,
   Store as StoreIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/menu"
 import { useAuth } from "@/components/auth-provider"
 import { useStore } from "@/components/store-provider"
+import { useShopping } from "@/components/shopping-provider"
 import { StoreManageModal } from "@/components/store-manage-modal"
 import { PeriodSelectorMenu } from "@/components/period-selector"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -28,6 +30,7 @@ import { logoutAction } from "@/app/actions/auth-actions"
 export function TopBar({ title }: { title: string }) {
   const { user } = useAuth()
   const { stores, activeStoreId, activeStore, setActiveStoreId } = useStore()
+  const { items: shoppingItems, openModal: openShoppingModal } = useShopping()
   const [manageOpen, setManageOpen] = React.useState(false)
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "?"
 
@@ -93,6 +96,22 @@ export function TopBar({ title }: { title: string }) {
 
         {/* Theme toggle */}
         <ThemeToggle />
+
+        {/* Shopping / purchase checklist */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative"
+          aria-label="รายการของที่ต้องซื้อ"
+          onClick={openShoppingModal}
+        >
+          <ShoppingCart className="h-4 w-4" />
+          {shoppingItems.length > 0 ? (
+            <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
+              {shoppingItems.length > 99 ? "99+" : shoppingItems.length}
+            </span>
+          ) : null}
+        </Button>
 
         {/* Notifications */}
         <Button

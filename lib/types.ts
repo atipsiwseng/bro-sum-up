@@ -64,6 +64,12 @@ export type ActionResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string }
 
+export type ShoppingItem = {
+  id: string
+  itemName: string
+  quantity: number
+}
+
 export type AdminUserOverview = {
   id: string
   email: string
